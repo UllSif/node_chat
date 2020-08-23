@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>chat</title>
+</head>
+<body>
+<h1>Test de tchat en ligne</h1>
+
+<input type="text" id="message" placeholder="Votre message...">
+<input type="button" id="btnSend" value="Envoyer">
+
+<div id="zoneChat"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    var socket = io.connect('http://localhost:3000/');
+    var btn = document.getElementById('btnSend');
+    var input = document.getElementById('message');
+    var zoneChat = document.getElementById('zoneChat');
+
+    // On récupère le pseudo de l'utilisateur et on l'envoit
+    var userName = prompt('Quel est votre pseudo ?');
+    socket.emit('nouveauClient', userName);
+    document.title = userName + ' - ' + document.title;
+
+    // On envoit les données dans le tableau
+    socket.on('message', function (data) {
+        insereMessage(data.userName, data.message);
+    })
+
+    // On envoit un message dans le tchat à la connexion d'un utilisateur
+    socket.on('nouveauClient', function (userName) {
+        var p = document.createElement('p');
+        p.innerHTML = '<b>' + userName + '</b>' + ' a rejoint le tchat';
+        zoneChat.prepend(p);
+    })
+
+    // Fonction d'envoit du message
+    btn.onclick = function () {
+        var message = input.value;
+        socket.emit('message', message);
+        insereMessage(userName, message);
+    }
+
+    // Fonction pour afficher un message
+    function insereMessage(userName, userMessage) {
+        var p = document.createElement('p');
+        p.innerHTML = '<b>' + userName + '</b>' + ' : ' + userMessage;
+        zoneChat.prepend(p);
+    }
+</script>
+</body>
+</html>
